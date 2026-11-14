@@ -1,0 +1,26 @@
+import Redis from 'ioredis';
+import { config } from './index';
+
+const globalForRedis = globalThis as unknown as {
+  redis: Redis | undefined;
+};
+
+export const redis =
+  globalForRedis.redis ??
+  new Redis(config.redis.url, {
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+    lazyConnect: true,
+  });
+
+if (process.env.NODE_ENV !== 'production') globalForRedis.redis = redis;
+
+redis.on('error', (err) => {
+  console.error('Redis connection error:', err);
+});
+
+redis.on('connect', () => {
+  console.log('Redis connected');
+});
+
+export default redis;
