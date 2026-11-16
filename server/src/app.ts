@@ -15,16 +15,20 @@ validateConfig();
 
 const app = express();
 
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
-app.use(cors({
-  origin: config.clientUrl,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-}));
+app.use(
+  cors({
+    origin: config.clientUrl,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  })
+);
 
 app.use(morgan('combined'));
 
@@ -185,9 +189,7 @@ const swaggerOptions = {
         },
       },
     },
-    security: [
-      { bearerAuth: [] },
-    ],
+    security: [{ bearerAuth: [] }],
     tags: [
       { name: 'Authentication', description: 'Authentication endpoints' },
       { name: 'Health', description: 'Health check endpoints' },
@@ -198,10 +200,14 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'KnowBase AI API Docs',
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'KnowBase AI API Docs',
+  })
+);
 
 app.use('/api', apiRoutes);
 

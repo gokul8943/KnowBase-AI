@@ -44,11 +44,7 @@ export const config = {
 };
 
 export const validateConfig = (): void => {
-  const required = [
-    'DATABASE_URL',
-    'JWT_ACCESS_SECRET',
-    'JWT_REFRESH_SECRET',
-  ];
+  const required = ['DATABASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 
   const missing = required.filter((key) => !process.env[key]);
 

@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Separator } from '../components/ui/separator';
 import { Mail, ArrowLeft } from 'lucide-react';
@@ -11,7 +18,9 @@ export function ForgotPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Forgot password?</CardTitle>
-          <CardDescription>Enter your email and we'll send you reset instructions</CardDescription>
+          <CardDescription>
+            Enter your email and we&apos;ll send you reset instructions
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="default" className="mb-4">
@@ -44,7 +53,10 @@ export function ForgotPassword() {
         <CardFooter className="flex flex-col space-y-4">
           <Separator />
           <p className="text-center text-sm text-muted-foreground">
-            <Link to="/login" className="flex items-center justify-center space-x-1 text-primary hover:underline">
+            <Link
+              to="/login"
+              className="flex items-center justify-center space-x-1 text-primary hover:underline"
+            >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to login</span>
             </Link>

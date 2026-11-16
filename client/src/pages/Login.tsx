@@ -8,7 +8,14 @@ import { loginSchema, type LoginFormData } from '../utils/validation';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Separator } from '../components/ui/separator';
 
@@ -76,7 +83,9 @@ export function Login() {
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-destructive" role="alert">{errors.email.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -108,7 +117,9 @@ export function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive" role="alert">{errors.password.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -127,7 +138,7 @@ export function Login() {
         <CardFooter className="flex flex-col space-y-4">
           <Separator />
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/signup" className="text-primary font-medium hover:underline">
               Sign up
             </Link>

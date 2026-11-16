@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { asyncHandler } from '../../shared/utils/asyncHandler';
 import { authService } from './auth.service';
 import { config } from '../../config';
-import { ApiResponse } from '../../shared/types';
+import type { ApiResponse } from '../../shared/types';
 
 const setRefreshTokenCookie = (res: Response, refreshToken: string): void => {
   res.cookie(config.cookie.name, refreshToken, config.cookie.options);
@@ -25,7 +25,7 @@ export const authController = {
       },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.status(201).json(response);
@@ -43,7 +43,7 @@ export const authController = {
       },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.json(response);
@@ -60,7 +60,7 @@ export const authController = {
         },
         meta: {
           timestamp: new Date().toISOString(),
-          requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+          requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
         },
       };
       res.status(401).json(response);
@@ -77,7 +77,7 @@ export const authController = {
       },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.json(response);
@@ -93,7 +93,7 @@ export const authController = {
       data: { message: 'Logged out successfully' },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.json(response);
@@ -108,7 +108,7 @@ export const authController = {
       data: { user },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.json(response);

@@ -1,8 +1,9 @@
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { prisma } from '../config/prisma';
 import { redis } from '../config/redis';
 import { asyncHandler } from '../shared/utils/asyncHandler';
-import { ApiResponse } from '../shared/types';
+import type { ApiResponse } from '../shared/types';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get(
       },
       meta: {
         timestamp: new Date().toISOString(),
-        requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+        requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
       },
     };
     res.json(response);
@@ -44,11 +45,11 @@ router.get(
         },
         meta: {
           timestamp: new Date().toISOString(),
-          requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+          requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
         },
       };
       res.json(response);
-    } catch (error) {
+    } catch {
       const response: ApiResponse = {
         success: false,
         error: {
@@ -57,7 +58,7 @@ router.get(
         },
         meta: {
           timestamp: new Date().toISOString(),
-          requestId: req.headers['x-request-id'] as string || crypto.randomUUID(),
+          requestId: (req.headers['x-request-id'] as string) || crypto.randomUUID(),
         },
       };
       res.status(503).json(response);

@@ -1,14 +1,10 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config';
 import { prisma } from '../../config/prisma';
 import { authRepository } from './auth.repository';
-import {
-  AuthUser,
-  TokenPayload,
-  Tokens,
-  RefreshTokenData,
-} from './auth.types';
+import type { AuthUser, TokenPayload, Tokens } from './auth.types';
 import {
   AuthenticationError,
   ConflictError,
@@ -17,7 +13,7 @@ import {
   TokenReusedError,
   NotFoundError,
 } from '../../shared/errors/AppError';
-import { SignupInput, LoginInput } from './auth.validation';
+import type { SignupInput, LoginInput } from './auth.validation';
 
 export const authService = {
   async hashPassword(password: string): Promise<string> {
@@ -73,7 +69,7 @@ export const authService = {
   },
 
   hashToken(token: string): string {
-    return require('crypto').createHash('sha256').update(token).digest('hex');
+    return crypto.createHash('sha256').update(token).digest('hex');
   },
 
   parseExpiry(expiresIn: string): Date {

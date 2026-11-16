@@ -30,14 +30,25 @@ export function Dashboard() {
             <h1 className="text-xl font-bold">KnowBase AI</h1>
           </div>
           <nav className="flex items-center space-x-4">
-            <Link to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            <Link
+              to="/dashboard"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
               Dashboard
             </Link>
-            <Link to="/settings" className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center space-x-1">
+            <Link
+              to="/settings"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center space-x-1"
+            >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </Link>
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-destructive"
+            >
               <LogOut className="h-4 w-4" />
               <span className="sr-only">Logout</span>
             </Button>
@@ -49,7 +60,9 @@ export function Dashboard() {
         <div className="max-w-3xl mx-auto space-y-6">
           <div>
             <h2 className="text-2xl font-bold">Welcome back, {user?.name}!</h2>
-            <p className="text-muted-foreground mt-1">This is your dashboard. Start building your knowledge base.</p>
+            <p className="text-muted-foreground mt-1">
+              This is your dashboard. Start building your knowledge base.
+            </p>
           </div>
 
           <Card>
@@ -76,7 +89,9 @@ export function Dashboard() {
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Email Verified</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Email Verified
+                  </label>
                   <p className="mt-1">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {user?.emailVerified ? 'Yes' : 'No'}

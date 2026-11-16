@@ -9,7 +9,14 @@ import { signupSchema, type SignupFormData } from '../utils/validation';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Separator } from '../components/ui/separator';
 
@@ -104,7 +111,9 @@ export function Signup() {
                 />
               </div>
               {errors.name && (
-                <p className="text-sm text-destructive" role="alert">{errors.name.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -123,7 +132,9 @@ export function Signup() {
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-destructive" role="alert">{errors.email.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -157,11 +168,15 @@ export function Signup() {
                       style={{ width: `${(strength.score / 5) * 100}%` }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">Password strength: {strength.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Password strength: {strength.label}
+                  </p>
                 </div>
               )}
               {errors.password && (
-                <p className="text-sm text-destructive" role="alert">{errors.password.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -180,7 +195,9 @@ export function Signup() {
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive" role="alert">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-destructive" role="alert">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 

@@ -1,13 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { authService } from '../modules/auth/auth.service';
 import { AuthenticationError, TokenExpiredError } from '../shared/errors/AppError';
-import { AuthenticatedUser } from '../shared/types';
+import type { AuthenticatedUser } from '../shared/types';
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthenticatedUser;
-    }
+declare module 'express' {
+  interface Request {
+    user?: AuthenticatedUser;
   }
 }
 

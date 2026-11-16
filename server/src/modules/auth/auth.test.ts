@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../../app';
 import { prisma } from '../../config/prisma';
 import { authService } from './auth.service';
-import { AuthenticationError, ConflictError, TokenExpiredError, TokenReusedError } from '../../shared/errors/AppError';
 
 vi.mock('../../config/prisma');
 vi.mock('../../config/redis');
 
-const mockPrisma = prisma as any;
-const mockAuthService = authService as any;
+const mockPrisma = prisma as unknown as Record<string, unknown>;
+const mockAuthService = authService as unknown as Record<string, unknown>;
 
 describe('Authentication API', () => {
   beforeEach(() => {
@@ -246,9 +245,7 @@ describe('Authentication API', () => {
     });
 
     it('should reject missing refresh token', async () => {
-      const response = await request(app)
-        .post('/api/auth/refresh')
-        .expect(401);
+      const response = await request(app).post('/api/auth/refresh').expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('TOKEN_MISSING');
@@ -344,9 +341,7 @@ describe('Authentication API', () => {
     });
 
     it('should handle logout without refresh token', async () => {
-      const response = await request(app)
-        .post('/api/auth/logout')
-        .expect(200);
+      const response = await request(app).post('/api/auth/logout').expect(200);
 
       expect(response.body.success).toBe(true);
     });
@@ -379,9 +374,7 @@ describe('Authentication API', () => {
     });
 
     it('should reject missing access token', async () => {
-      const response = await request(app)
-        .get('/api/auth/me')
-        .expect(401);
+      const response = await request(app).get('/api/auth/me').expect(401);
 
       expect(response.body.success).toBe(false);
       expect(response.body.error.code).toBe('UNAUTHORIZED');

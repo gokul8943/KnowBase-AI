@@ -1,19 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
-import {
-  AppError,
-  ValidationError,
-  AuthenticationError,
-  AuthorizationError,
-  NotFoundError,
-  ConflictError,
-  RateLimitError,
-  TokenError,
-  TokenExpiredError,
-  TokenReusedError,
-} from './AppError';
-import { ApiResponse } from '../types';
+import { AppError } from './AppError';
+import type { ApiResponse } from '../types';
 
 export const errorHandler = (
   err: Error,
@@ -21,7 +10,7 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ): void => {
-  const requestId = req.headers['x-request-id'] as string || crypto.randomUUID();
+  const requestId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
   const timestamp = new Date().toISOString();
 
   console.error(`[${timestamp}] [${requestId}] Error:`, {
@@ -112,9 +101,7 @@ export const errorHandler = (
     success: false,
     error: {
       code: 'INTERNAL_SERVER_ERROR',
-      message: process.env.NODE_ENV === 'production'
-        ? 'An unexpected error occurred'
-        : err.message,
+      message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
     },
     meta: { timestamp, requestId },
   };
@@ -123,7 +110,7 @@ export const errorHandler = (
 
 export const notFoundHandler = (req: Request, res: Response): void => {
   const timestamp = new Date().toISOString();
-  const requestId = req.headers['x-request-id'] as string || crypto.randomUUID();
+  const requestId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
 
   const response: ApiResponse = {
     success: false,

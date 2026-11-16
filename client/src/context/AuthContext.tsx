@@ -7,7 +7,12 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (data: { name: string; email: string; password: string; confirmPassword: string }) => Promise<void>;
+  signup: (data: {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -52,7 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (data: { name: string; email: string; password: string; confirmPassword: string }) => {
+  const signup = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
     const response = await api.signup(data);
     if (response.success && response.data) {
       localStorage.setItem('knowbase_access_token', response.data.accessToken);
