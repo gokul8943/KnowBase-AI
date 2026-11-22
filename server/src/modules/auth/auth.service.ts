@@ -29,6 +29,7 @@ export const authService = {
       sub: user.id,
       email: user.email,
       type: 'access',
+      jti: crypto.randomUUID(),
     };
     return jwt.sign(payload, config.jwt.accessSecret, {
       expiresIn: config.jwt.accessExpiresIn as jwt.SignOptions['expiresIn'],
@@ -40,6 +41,7 @@ export const authService = {
       sub: user.id,
       email: user.email,
       type: 'refresh',
+      jti: crypto.randomUUID(),
     };
     return jwt.sign(payload, config.jwt.refreshSecret, {
       expiresIn: config.jwt.refreshExpiresIn as jwt.SignOptions['expiresIn'],
@@ -152,29 +154,84 @@ export const authService = {
 
   async refreshTokens(refreshToken: string): Promise<Tokens> {
     const tokenHash = this.hashToken(refreshToken);
-    const storedToken = await authRepository.findRefreshToken(tokenHash);
 
-    if (!storedToken) {
-      throw new TokenReusedError('Refresh token not found or already revoked');
-    }
+    const result = await prisma.$transaction(async (tx) => {
+      const now = new Date();
+      
+      const revokedToken = await tx.refreshToken.updateMany({
+        where: {
+          tokenHash,
+          revokedAt: null,
+          expiresAt: { gt: now },
+        },
+        data: { revokedAt: now },
+      });
 
-    if (storedToken.revokedAt) {
-      await authRepository.revokeAllUserTokens(storedToken.userId);
-      throw new TokenReusedError('Token reuse detected - all sessions revoked');
-    }
+      if (revokedToken.count === 0) {
+        const storedToken = await tx.refreshToken.findUnique({ where: { tokenHash } });
+        if (storedToken?.revokedAt) {
+          const revokedAt = new Date(storedToken.revokedAt).getTime();
+          const recentReuse = Date.now() - revokedAt < 5000;
+          
+          if (recentReuse) {
+            const validToken = await tx.refreshToken.findFirst({
+              where: { userId: storedToken.userId, revokedAt: null, expiresAt: { gt: now } },
+              orderBy: { createdAt: 'desc' },
+            });
+            if (validToken && validToken.id !== storedToken.id) {
+              throw new TokenReusedError('Token already used by concurrent request - please retry');
+            }
+          }
+          
+          await tx.refreshToken.updateMany({
+            where: { userId: storedToken.userId, revokedAt: null },
+            data: { revokedAt: now },
+          });
+          throw new TokenReusedError('Token reuse detected - all sessions revoked');
+        }
+        throw new TokenReusedError('Refresh token not found or already revoked');
+      }
 
-    if (storedToken.expiresAt < new Date()) {
-      throw new TokenExpiredError('Refresh token has expired');
-    }
+      const token = await tx.refreshToken.findUnique({ where: { tokenHash } });
+      if (!token || token.expiresAt < now) {
+        throw new TokenExpiredError('Refresh token has expired');
+      }
 
-    const user = await authRepository.findById(storedToken.userId);
-    if (!user || !user.isActive) {
-      throw new AuthenticationError('User not found or deactivated');
-    }
+      const user = await tx.user.findUnique({ where: { id: token.userId } });
+      if (!user || !user.isActive) {
+        throw new AuthenticationError('User not found or deactivated');
+      }
 
-    await authRepository.revokeRefreshToken(storedToken.id);
+      const accessToken = this.generateAccessToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+      });
+      const refreshTokenNew = this.generateRefreshToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+      });
 
-    return this.generateTokenPair(user);
+      const refreshTokenHash = this.hashToken(refreshTokenNew);
+      const expiresAt = this.parseExpiry(config.jwt.refreshExpiresIn);
+
+      await tx.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: refreshTokenHash,
+          expiresAt,
+        },
+      });
+
+      return { accessToken, refreshToken: refreshTokenNew };
+    });
+
+    return result;
   },
 
   async logout(refreshToken?: string): Promise<void> {

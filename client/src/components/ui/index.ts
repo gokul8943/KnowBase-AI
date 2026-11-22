@@ -1,7 +1,13 @@
 export { Button, buttonVariants } from './button';
 export { Input } from './input';
+export { Textarea } from './textarea';
 export { Label } from './label';
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from './card';
 export { Alert, AlertTitle, AlertDescription, AlertAction } from './alert';
 export { Separator } from './separator';
 export { Toaster } from './toaster';
+export { Select, SelectTrigger, SelectContent, SelectValue, SelectItem } from './select';
+export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from './dropdown-menu';
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
+export { Badge } from './badge';
+export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from './dialog';

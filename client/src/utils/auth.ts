@@ -1,18 +1,15 @@
-const ACCESS_TOKEN_KEY = 'knowbase_access_token';
+let memoryAccessToken: string | null = null;
 
 export const getAccessToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return memoryAccessToken;
 };
 
 export const setAccessToken = (token: string): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  memoryAccessToken = token;
 };
 
 export const clearTokens = (): void => {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  memoryAccessToken = null;
 };
 
 export const isTokenExpired = (token: string): boolean => {

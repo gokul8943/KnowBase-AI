@@ -74,7 +74,7 @@ const swaggerOptions = {
     openapi: '3.0.0',
     info: {
       title: 'KnowBase AI API',
-      version: '1.0.0',
+      version: '2.0.0',
       description: 'API documentation for KnowBase AI - AI-powered Enterprise Knowledge Assistant',
       contact: {
         name: 'KnowBase AI Team',
@@ -187,11 +187,174 @@ const swaggerOptions = {
             },
           },
         },
+        OrganizationRequest: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string', minLength: 2, maxLength: 100 },
+            description: { type: 'string', maxLength: 500 },
+          },
+        },
+        OrganizationUpdateRequest: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', minLength: 2, maxLength: 100 },
+            description: { type: 'string', maxLength: 500 },
+            logoUrl: { type: 'string', format: 'uri', maxLength: 500 },
+          },
+        },
+        OrganizationResponse: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            slug: { type: 'string' },
+            description: { type: 'string', nullable: true },
+            logoUrl: { type: 'string', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+            workspaces: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/WorkspaceResponse' },
+            },
+          },
+        },
+        WorkspaceResponse: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string', nullable: true },
+            organizationId: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        WorkspaceRequest: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: { type: 'string', minLength: 2, maxLength: 100 },
+            description: { type: 'string', maxLength: 500 },
+          },
+        },
+        WorkspaceUpdateRequest: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', minLength: 2, maxLength: 100 },
+            description: { type: 'string', maxLength: 500, nullable: true },
+          },
+        },
+        MemberResponse: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            organizationId: { type: 'string' },
+            userId: { type: 'string' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                email: { type: 'string' },
+                isActive: { type: 'boolean' },
+                emailVerified: { type: 'boolean' },
+              },
+            },
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+            joinedAt: { type: 'string', format: 'date-time' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        MemberRoleUpdateRequest: {
+          type: 'object',
+          required: ['role'],
+          properties: {
+            role: { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] },
+          },
+        },
+        InvitationRequest: {
+          type: 'object',
+          required: ['email', 'role'],
+          properties: {
+            email: { type: 'string', format: 'email' },
+            role: { type: 'string', enum: ['ADMIN', 'MEMBER'] },
+          },
+        },
+        InvitationResponse: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            organizationId: { type: 'string' },
+            email: { type: 'string' },
+            role: { type: 'string', enum: ['ADMIN', 'MEMBER'] },
+            invitedBy: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                email: { type: 'string' },
+              },
+            },
+            expiresAt: { type: 'string', format: 'date-time' },
+            acceptedAt: { type: 'string', format: 'date-time', nullable: true },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        InvitationAcceptRequest: {
+          type: 'object',
+          required: ['token'],
+          properties: {
+            token: { type: 'string' },
+          },
+        },
+        ListOrganizationsResponse: {
+          type: 'object',
+          properties: {
+            organizations: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/OrganizationResponse' },
+            },
+          },
+        },
+        ListWorkspacesResponse: {
+          type: 'object',
+          properties: {
+            workspaces: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/WorkspaceResponse' },
+            },
+          },
+        },
+        ListMembersResponse: {
+          type: 'object',
+          properties: {
+            members: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/MemberResponse' },
+            },
+          },
+        },
+        ListInvitationsResponse: {
+          type: 'object',
+          properties: {
+            invitations: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/InvitationResponse' },
+            },
+          },
+        },
       },
     },
     security: [{ bearerAuth: [] }],
     tags: [
       { name: 'Authentication', description: 'Authentication endpoints' },
+      { name: 'Organizations', description: 'Organization management endpoints' },
+      { name: 'Workspaces', description: 'Workspace management endpoints' },
+      { name: 'Members', description: 'Organization member management endpoints' },
+      { name: 'Invitations', description: 'Invitation management endpoints' },
       { name: 'Health', description: 'Health check endpoints' },
     ],
   },

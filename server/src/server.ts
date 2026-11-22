@@ -3,6 +3,14 @@ import { config } from './config';
 import { prisma } from './config/prisma';
 import { redis } from './config/redis';
 
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error('Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+});
+
 const startServer = async (): Promise<void> => {
   try {
     await prisma.$connect();

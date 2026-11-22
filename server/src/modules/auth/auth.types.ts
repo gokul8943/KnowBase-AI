@@ -12,6 +12,7 @@ export interface TokenPayload {
   sub: string;
   email: string;
   type: 'access' | 'refresh';
+  jti: string;
 }
 
 export interface Tokens {

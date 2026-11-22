@@ -17,7 +17,9 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  refreshTokens  RefreshToken[]
+  refreshTokens         RefreshToken[]
+  organizationMembers   OrganizationMember[]
+  sentInvitations       Invitation[] @relation("SentInvitations")
 
   @@index([email])
   @@map("users")
@@ -35,4 +37,75 @@ model RefreshToken {
   @@index([userId])
   @@index([tokenHash])
   @@map("refresh_tokens")
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  logoUrl     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  members     OrganizationMember[]
+  workspaces  Workspace[]
+  invitations Invitation[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id              String    @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role            MemberRole @default(MEMBER)
+  joinedAt        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+model Workspace {
+  id              String    @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@map("workspaces")
+}
+
+model Invitation {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email           String
+  role            MemberRole
+  tokenHash       String        @unique
+  invitedById     String
+  invitedBy       User          @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([organizationId, email])
+  @@index([tokenHash])
+  @@map("invitations")
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
 }

@@ -4,6 +4,10 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
+import { OrganizationOnboarding } from './modules/organizations/pages/OrganizationOnboarding';
+import { OrganizationSettings } from './modules/organizations/pages/OrganizationSettings';
+import { OrganizationMembers } from './modules/organizations/pages/OrganizationMembers';
+import { WorkspacePage } from './modules/organizations/pages/WorkspacePage';
 
 function App() {
   return (
@@ -33,6 +37,14 @@ function App() {
         }
       />
       <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <OrganizationOnboarding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
@@ -44,7 +56,23 @@ function App() {
         path="/settings"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <OrganizationSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organization/members"
+        element={
+          <ProtectedRoute>
+            <OrganizationMembers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organization/workspace"
+        element={
+          <ProtectedRoute>
+            <WorkspacePage />
           </ProtectedRoute>
         }
       />

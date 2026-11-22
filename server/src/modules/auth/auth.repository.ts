@@ -88,6 +88,32 @@ export const authRepository = {
     });
   },
 
+  async revokeRefreshTokenIfValid(tokenHash: string): Promise<RefreshTokenData | null> {
+    const now = new Date();
+    const result = await prisma.refreshToken.updateMany({
+      where: {
+        tokenHash,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
+      data: { revokedAt: now },
+    });
+    if (result.count === 0) {
+      return null;
+    }
+    const token = await prisma.refreshToken.findUnique({ where: { tokenHash } });
+    if (!token) {
+      return null;
+    }
+    return {
+      id: token.id,
+      tokenHash: token.tokenHash,
+      userId: token.userId,
+      expiresAt: token.expiresAt,
+      revokedAt: token.revokedAt,
+    };
+  },
+
   async revokeAllUserTokens(userId: string): Promise<void> {
     await prisma.refreshToken.updateMany({
       where: { userId, revokedAt: null },

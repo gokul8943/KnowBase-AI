@@ -16,11 +16,13 @@ export const authMiddleware = async (
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    const cookieToken = req.cookies?.accessToken;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : cookieToken;
+    
+    if (!token) {
       throw new AuthenticationError('Access token is required');
     }
 
-    const token = authHeader.split(' ')[1];
     const payload = authService.verifyAccessToken(token);
 
     if (payload.type !== 'access') {
@@ -57,12 +59,14 @@ export const optionalAuthMiddleware = async (
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
+    const cookieToken = req.cookies?.accessToken;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : cookieToken;
+    
+    if (!token) {
       next();
       return;
     }
 
-    const token = authHeader.split(' ')[1];
     const payload = authService.verifyAccessToken(token);
 
     if (payload.type !== 'access') {

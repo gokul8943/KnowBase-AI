@@ -1,21 +1,28 @@
 import { vi } from 'vitest';
 
+const createMockModel = () => ({
+  findUnique: vi.fn(),
+  findFirst: vi.fn(),
+  findMany: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
+  updateMany: vi.fn(),
+  delete: vi.fn(),
+  deleteMany: vi.fn(),
+  count: vi.fn(),
+});
+
 vi.mock('../config/prisma', () => ({
   prisma: {
-    user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-    },
-    refreshToken: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-      deleteMany: vi.fn(),
-    },
+    user: createMockModel(),
+    refreshToken: createMockModel(),
+    organization: createMockModel(),
+    organizationMember: createMockModel(),
+    workspace: createMockModel(),
+    invitation: createMockModel(),
     $connect: vi.fn(),
     $disconnect: vi.fn(),
+    $transaction: vi.fn((callback) => callback(vi.mocked(vi.fn()))),
     $queryRaw: vi.fn(),
   },
 }));

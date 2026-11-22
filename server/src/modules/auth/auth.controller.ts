@@ -1,21 +1,31 @@
+import crypto from 'crypto';
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../shared/utils/asyncHandler';
 import { authService } from './auth.service';
 import { config } from '../../config';
 import type { ApiResponse } from '../../shared/types';
 
-const setRefreshTokenCookie = (res: Response, refreshToken: string): void => {
+const setAuthCookies = (res: Response, accessToken: string, refreshToken: string): void => {
+  res.cookie('accessToken', accessToken, {
+    ...config.cookie.options,
+    maxAge: 15 * 60 * 1000,
+  });
   res.cookie(config.cookie.name, refreshToken, config.cookie.options);
 };
 
-const clearRefreshTokenCookie = (res: Response): void => {
-  res.clearCookie(config.cookie.name, config.cookie.options);
+const clearAuthCookies = (res: Response): void => {
+  const cookieOptions = {
+    ...config.cookie.options,
+    maxAge: undefined,
+  };
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie(config.cookie.name, cookieOptions);
 };
 
 export const authController = {
   signup: asyncHandler(async (req: Request, res: Response) => {
     const { user, tokens } = await authService.signup(req.body);
-    setRefreshTokenCookie(res, tokens.refreshToken);
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
     const response: ApiResponse = {
       success: true,
@@ -33,7 +43,7 @@ export const authController = {
 
   login: asyncHandler(async (req: Request, res: Response) => {
     const { user, tokens } = await authService.login(req.body);
-    setRefreshTokenCookie(res, tokens.refreshToken);
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
     const response: ApiResponse = {
       success: true,
@@ -68,7 +78,7 @@ export const authController = {
     }
 
     const tokens = await authService.refreshTokens(refreshToken);
-    setRefreshTokenCookie(res, tokens.refreshToken);
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
     const response: ApiResponse = {
       success: true,
@@ -86,7 +96,7 @@ export const authController = {
   logout: asyncHandler(async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refreshToken;
     await authService.logout(refreshToken);
-    clearRefreshTokenCookie(res);
+    clearAuthCookies(res);
 
     const response: ApiResponse = {
       success: true,

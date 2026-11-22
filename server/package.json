@@ -33,6 +33,7 @@
     "morgan": "^1.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "transliteration": "^2.7.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { User } from '../types/auth';
+import { getAccessToken, setAccessToken, clearTokens } from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -38,9 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('knowbase_access_token');
+      const token = getAccessToken();
       if (token) {
         await refreshUser();
+      } else {
+        try {
+          await api.refresh();
+          await refreshUser();
+        } catch {
+          setUser(null);
+        }
       }
       setIsLoading(false);
     };
@@ -50,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     const response = await api.login({ email, password });
     if (response.success && response.data) {
-      localStorage.setItem('knowbase_access_token', response.data.accessToken);
+      setAccessToken(response.data.accessToken);
       setUser(response.data.user);
     } else {
       throw new Error(response.error?.message || 'Login failed');
@@ -65,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }) => {
     const response = await api.signup(data);
     if (response.success && response.data) {
-      localStorage.setItem('knowbase_access_token', response.data.accessToken);
+      setAccessToken(response.data.accessToken);
       setUser(response.data.user);
     } else {
       throw new Error(response.error?.message || 'Signup failed');
@@ -76,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await api.logout();
     } finally {
-      localStorage.removeItem('knowbase_access_token');
+      clearTokens();
       setUser(null);
     }
   };
