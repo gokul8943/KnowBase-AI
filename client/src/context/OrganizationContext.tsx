@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { organizationApi } from '../modules/organizations/api/organizationApi';
 import type { OrganizationResponse } from '../modules/organizations/types/organization';
@@ -8,6 +8,7 @@ interface OrganizationContextType {
   activeOrganization: OrganizationResponse | null;
   organizations: OrganizationResponse[];
   isLoading: boolean;
+  isFetching: boolean;
   setActiveOrganization: (org: OrganizationResponse) => void;
   refreshOrganizations: () => Promise<void>;
   createOrganization: (data: { name: string; description?: string }) => Promise<OrganizationResponse>;
@@ -25,9 +26,8 @@ interface OrganizationProviderProps {
 export function OrganizationProvider({ children, isAuthenticated }: OrganizationProviderProps) {
   const queryClient = useQueryClient();
   const [activeOrganization, setActiveOrganizationState] = useState<OrganizationResponse | null>(null);
-  const initializedRef = useRef(false);
 
-  const { data: organizations = [], isLoading, refetch } = useQuery({
+  const { data: organizations = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['organizations'],
     queryFn: organizationApi.list,
     staleTime: 5 * 60 * 1000,
@@ -101,14 +101,10 @@ export function OrganizationProvider({ children, isAuthenticated }: Organization
   );
 
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
     const storedOrgId = localStorage.getItem('activeOrganizationId');
     if (storedOrgId && organizations.length > 0) {
       const org = organizations.find((o) => o.id === storedOrgId);
       if (org) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveOrganizationState(org);
       } else if (organizations[0]) {
         setActiveOrganizationState(organizations[0]);
@@ -124,6 +120,7 @@ export function OrganizationProvider({ children, isAuthenticated }: Organization
         activeOrganization,
         organizations,
         isLoading,
+        isFetching,
         setActiveOrganization,
         refreshOrganizations,
         createOrganization,

@@ -47,7 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await refreshUser();
       } else {
         try {
-          await api.refresh();
+          const response = await api.refresh();
+          if (response.success && response.data?.accessToken) {
+            setAccessToken(response.data.accessToken);
+          }
           await refreshUser();
         } catch {
           setUser(null);
