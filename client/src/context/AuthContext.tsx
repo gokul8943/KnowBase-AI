@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { api } from '../services/api';
 import { User } from '../types/auth';
 import { getAccessToken, setAccessToken, clearTokens } from '../utils/auth';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
   user: User | null;
@@ -23,19 +24,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const refreshUser = useCallback(async () => {
     try {
       const response = await api.me();
       if (response.success && response.data?.user) {
         setUser(response.data.user);
+        queryClient.invalidateQueries({ queryKey: ['organizations'] });
       } else {
         setUser(null);
       }
     } catch {
       setUser(null);
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -60,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (response.success && response.data) {
       setAccessToken(response.data.accessToken);
       setUser(response.data.user);
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     } else {
       throw new Error(response.error?.message || 'Login failed');
     }
@@ -75,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (response.success && response.data) {
       setAccessToken(response.data.accessToken);
       setUser(response.data.user);
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     } else {
       throw new Error(response.error?.message || 'Signup failed');
     }
