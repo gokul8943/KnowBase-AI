@@ -2,23 +2,31 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react';
-import { api } from '../services/api';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { signupSchema, type SignupFormData } from '../utils/validation';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
+  Button,
+  Input,
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
   CardFooter,
-} from '../components/ui/card';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Separator } from '../components/ui/separator';
+  Alert,
+  AlertDescription,
+  Separator,
+  FormField,
+} from '../components/ui';
+
+const passwordRequirements = [
+  { test: (pwd: string) => pwd.length >= 8, label: 'At least 8 characters' },
+  { test: (pwd: string) => /[A-Z]/.test(pwd), label: 'One uppercase letter' },
+  { test: (pwd: string) => /[a-z]/.test(pwd), label: 'One lowercase letter' },
+  { test: (pwd: string) => /[0-9]/.test(pwd), label: 'One number' },
+  { test: (pwd: string) => /[^A-Za-z0-9]/.test(pwd), label: 'One special character' },
+];
 
 export function Signup() {
   const navigate = useNavigate();
@@ -44,23 +52,6 @@ export function Signup() {
 
   const password = watch('password');
 
-  const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
-    let score = 0;
-    if (pwd.length >= 8) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[a-z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-    if (score <= 1) return { score, label: 'Very weak', color: 'bg-destructive' };
-    if (score === 2) return { score, label: 'Weak', color: 'bg-orange-500' };
-    if (score === 3) return { score, label: 'Fair', color: 'bg-yellow-500' };
-    if (score === 4) return { score, label: 'Good', color: 'bg-lime-500' };
-    return { score, label: 'Strong', color: 'bg-green-500' };
-  };
-
-  const strength = getPasswordStrength(password);
-
   const onSubmit = async (data: SignupFormData) => {
     setIsSubmitting(true);
     setServerError(null);
@@ -70,36 +61,39 @@ export function Signup() {
       navigate('/dashboard');
     } catch (err) {
       const error = err as Error;
-      const apiError = await api.signup(data);
-      if (!apiError.success && apiError.error) {
-        setServerError(apiError.error.message);
-      } else {
-        setServerError(error.message || 'Signup failed. Please try again.');
-      }
+      setServerError(error.message || 'Signup failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Start your journey with KnowBase AI</CardDescription>
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <Sparkles className="h-7 w-7 text-primary-foreground" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-semibold">Create an account</CardTitle>
+            <CardDescription>Start your journey with KnowBase AI</CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
           {serverError && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <AlertDescription>{serverError}</AlertDescription>
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <FormField
+              label="Full Name"
+              error={errors.name?.message}
+              required
+            >
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="name"
                   type="text"
@@ -107,20 +101,18 @@ export function Signup() {
                   className="pl-10"
                   {...register('name')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.name}
+                  autoComplete="name"
                 />
               </div>
-              {errors.name && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <FormField
+              label="Email"
+              error={errors.email?.message}
+              required
+            >
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="email"
                   type="email"
@@ -128,20 +120,18 @@ export function Signup() {
                   className="pl-10"
                   {...register('email')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.email}
+                  autoComplete="email"
                 />
               </div>
-              {errors.email && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <FormField
+              label="Password"
+              error={errors.password?.message}
+              required
+            >
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -149,7 +139,7 @@ export function Signup() {
                   className="pl-10 pr-10"
                   {...register('password')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.password}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -161,29 +151,36 @@ export function Signup() {
                 </button>
               </div>
               {password && (
-                <div className="space-y-1">
-                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${strength.color}`}
-                      style={{ width: `${(strength.score / 5) * 100}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Password strength: {strength.label}
-                  </p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Password requirements:</p>
+                  <ul className="space-y-1" role="list">
+                    {passwordRequirements.map((req, index) => {
+                      const met = req.test(password);
+                      return (
+                        <li key={index} className="flex items-center space-x-2 text-xs">
+                          {met ? (
+                            <CheckCircle className="h-3.5 w-3.5 text-success flex-shrink-0" />
+                          ) : (
+                            <AlertCircle className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <span className={met ? 'text-success' : 'text-muted-foreground'}>
+                            {req.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               )}
-              {errors.password && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <FormField
+              label="Confirm Password"
+              error={errors.confirmPassword?.message}
+              required
+            >
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
@@ -191,25 +188,13 @@ export function Signup() {
                   className="pl-10"
                   {...register('confirmPassword')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.confirmPassword}
+                  autoComplete="new-password"
                 />
               </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
+            <Button type="submit" variant="glass" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
         </CardContent>

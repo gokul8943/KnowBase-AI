@@ -4,13 +4,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useOrganization } from '../../../context/OrganizationContext';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
-import { Label } from '../../../components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../components/ui/card';
-import { Alert, AlertDescription } from '../../../components/ui/alert';
-import { Loader2, Building2, Calendar } from 'lucide-react';
+import { Loader2, Building2, Calendar, Trash2 } from 'lucide-react';
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  Alert,
+  AlertDescription,
+  FormField,
+  ConfirmationDialog,
+} from '../../../components/ui';
 import { format } from 'date-fns';
 
 const updateOrganizationSchema = z.object({
@@ -27,6 +36,7 @@ export function OrganizationSettings() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     register,
@@ -60,7 +70,7 @@ export function OrganizationSettings() {
 
   const handleDelete = async () => {
     if (!activeOrganization) return;
-    setIsSubmitting(true);
+    setIsDeleting(true);
     setError(null);
     try {
       await deleteOrganization(activeOrganization.id);
@@ -69,7 +79,7 @@ export function OrganizationSettings() {
       const message = err instanceof Error ? err.message : 'Failed to delete organization';
       setError(message);
     } finally {
-      setIsSubmitting(false);
+      setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
   };
@@ -83,13 +93,15 @@ export function OrganizationSettings() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center space-x-2">
-          <Building2 className="h-6 w-6 text-primary" />
-          <span>Organization Settings</span>
-        </h1>
-        <p className="text-muted-foreground mt-1">Manage your organization details and settings</p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold flex items-center space-x-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            <span>Organization Settings</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your organization details and settings</p>
+        </div>
       </div>
 
       <Card>
@@ -98,48 +110,45 @@ export function OrganizationSettings() {
           <CardDescription>Update your organization&apos;s name and description</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
             {success && (
-              <Alert variant="default" className="border-green-500/50 bg-green-500/10">
+              <Alert variant="success">
                 <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Organization Name</Label>
+            <FormField
+              label="Organization Name"
+              error={errors.name?.message}
+              required
+            >
               <Input
                 id="name"
                 {...register('name')}
                 disabled={isSubmitting}
-                aria-invalid={!!errors.name}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+            <FormField
+              label="Description"
+              error={errors.description?.message}
+            >
               <Textarea
                 id="description"
                 {...register('description')}
                 disabled={isSubmitting}
                 rows={3}
-                aria-invalid={!!errors.description}
               />
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
-            </div>
+            </FormField>
           </form>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button type="submit" form="org-settings-form" disabled={isSubmitting}>
+          <Button type="submit" variant="glass" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -155,7 +164,7 @@ export function OrganizationSettings() {
       <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive flex items-center space-x-2">
-            <Building2 className="h-5 w-5" />
+            <Trash2 className="h-5 w-5" />
             <span>Danger Zone</span>
           </CardTitle>
           <CardDescription>
@@ -163,7 +172,7 @@ export function OrganizationSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-destructive/5">
+          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-destructive/5">
             <div>
               <p className="font-medium text-destructive">Delete Organization</p>
               <p className="text-sm text-muted-foreground">
@@ -173,30 +182,12 @@ export function OrganizationSettings() {
             <Button
               variant="destructive"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isDeleting}
             >
               Delete
             </Button>
           </div>
-
-          {showDeleteConfirm && (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Are you sure you want to delete &ldquo;{activeOrganization.name}&rdquo;? This action cannot be undone.
-              </AlertDescription>
-            </Alert>
-          )}
         </CardContent>
-        {showDeleteConfirm && (
-          <CardFooter className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting}>
-              {isSubmitting ? 'Deleting...' : 'Yes, Delete Organization'}
-            </Button>
-          </CardFooter>
-        )}
       </Card>
 
       <Card>
@@ -205,29 +196,41 @@ export function OrganizationSettings() {
           <CardDescription>Read-only information about your organization</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label className="text-sm text-muted-foreground">Organization ID</Label>
-              <p className="font-mono text-sm">{activeOrganization.id}</p>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Organization ID</dt>
+              <dd className="mt-1 font-mono text-sm">{activeOrganization.id}</dd>
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-muted-foreground">Slug</Label>
-              <p className="font-mono text-sm">{activeOrganization.slug}</p>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Slug</dt>
+              <dd className="mt-1 font-mono text-sm">{activeOrganization.slug}</dd>
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-muted-foreground">Your Role</Label>
-              <p className="capitalize">{activeOrganization.role.toLowerCase()}</p>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">Your Role</dt>
+              <dd className="mt-1 capitalize">{activeOrganization.role.toLowerCase()}</dd>
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm text-muted-foreground">Created</Label>
-              <p className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1">
+              <dt className="text-sm font-medium text-muted-foreground">Created</dt>
+              <dd className="mt-1 flex items-center space-x-1">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                 <span>{format(new Date(activeOrganization.createdAt), 'PPP')}</span>
-              </p>
+              </dd>
             </div>
-          </div>
+          </dl>
         </CardContent>
       </Card>
+
+      <ConfirmationDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Organization"
+        description={`Are you sure you want to delete "${activeOrganization.name}"? This action cannot be undone.`}
+        confirmText="Yes, Delete Organization"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+        isPending={isDeleting}
+      />
     </div>
   );
 }

@@ -2,22 +2,23 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, type LoginFormData } from '../utils/validation';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import {
+  Button,
+  Input,
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
   CardFooter,
-} from '../components/ui/card';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Separator } from '../components/ui/separator';
+  Alert,
+  AlertDescription,
+  Separator,
+  FormField,
+} from '../components/ui';
 
 export function Login() {
   const navigate = useNavigate();
@@ -54,24 +55,32 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Sign in to your KnowBase AI account</CardDescription>
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <Sparkles className="h-7 w-7 text-primary-foreground" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+            <CardDescription>Sign in to your KnowBase AI account</CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
           {serverError && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <AlertDescription>{serverError}</AlertDescription>
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <FormField
+              label="Email"
+              error={errors.email?.message}
+              required
+            >
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="email"
                   type="email"
@@ -79,25 +88,18 @@ export function Login() {
                   className="pl-10"
                   {...register('email')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.email}
+                  autoComplete="email"
                 />
               </div>
-              {errors.email && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
+            <FormField
+              label="Password"
+              error={errors.password?.message}
+              required
+            >
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -105,7 +107,7 @@ export function Login() {
                   className="pl-10 pr-10"
                   {...register('password')}
                   disabled={isSubmitting}
-                  aria-invalid={!!errors.password}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -116,22 +118,10 @@ export function Login() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-destructive" role="alert">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign in'
-              )}
+            <Button type="submit" variant="glass" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
         </CardContent>

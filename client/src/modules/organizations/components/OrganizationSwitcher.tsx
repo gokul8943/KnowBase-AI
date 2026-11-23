@@ -4,7 +4,12 @@ import { Button } from '../../../components/ui/button';
 import { ChevronDown, Building2, Plus, Check } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
-export function OrganizationSwitcher() {
+interface OrganizationSwitcherProps {
+  className?: string;
+  showLabel?: boolean;
+}
+
+export function OrganizationSwitcher({ className, showLabel = true }: OrganizationSwitcherProps) {
   const { organizations, activeOrganization, setActiveOrganization } = useOrganization();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,9 +25,13 @@ export function OrganizationSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (organizations.length <= 1) {
+  if (organizations.length === 0) {
+    return null;
+  }
+
+  if (organizations.length === 1 && !showLabel) {
     return (
-      <div className="flex items-center space-x-2">
+      <div className={cn('flex items-center space-x-2', className)}>
         <Building2 className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium truncate max-w-[150px]">
           {activeOrganization?.name || organizations[0]?.name || 'No Organization'}
@@ -32,23 +41,28 @@ export function OrganizationSwitcher() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className={cn('relative', className)} ref={dropdownRef}>
       <Button
-        variant="outline"
+        variant="glass"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 h-9 px-3 gap-2"
+        className={cn('flex items-center space-x-2 h-9 px-3 gap-2', showLabel ? '' : 'justify-center')}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label="Switch organization"
       >
         <Building2 className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium truncate max-w-[150px]">
-          {activeOrganization?.name}
-        </span>
-        <ChevronDown className={cn('h-4 w-4 text-muted-foreground', isOpen && 'rotate-180')} />
+        {showLabel && (
+          <span className="text-sm font-medium truncate max-w-[150px]">
+            {activeOrganization?.name}
+          </span>
+        )}
+        {showLabel && (
+          <ChevronDown className={cn('h-4 w-4 text-muted-foreground', isOpen && 'rotate-180')} />
+        )}
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-64 origin-top-right rounded-md bg-popover shadow-lg ring-1 ring-black/5 focus:outline-none border">
+        <div className="absolute right-0 top-full z-50 mt-1 w-64 origin-top-right rounded-md bg-popover shadow-lg ring-1 ring-black/5 focus:outline-none border border-border">
           <div className="py-1">
             {organizations.map((org) => (
               <button

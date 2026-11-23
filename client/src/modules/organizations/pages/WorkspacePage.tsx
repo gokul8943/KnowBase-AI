@@ -5,15 +5,22 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '../../../context/OrganizationContext';
 import { workspaceApi } from '../../../modules/workspaces/api/workspaceApi';
-import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
-import { Label } from '../../../components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/card';
-import { Alert, AlertDescription } from '../../../components/ui/alert';
-import { Badge } from '../../../components/ui/badge';
-import { Loader2, Building2, Settings, Edit2, Save, X } from 'lucide-react';
+import { Loader2, Building2, Settings, Edit2, Save, X, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Badge,
+  Alert,
+  AlertDescription,
+  FormField,
+} from '../../../components/ui';
 
 const updateWorkspaceSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
@@ -89,52 +96,67 @@ export function WorkspacePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center space-x-2">
-          <Building2 className="h-6 w-6 text-primary" />
-          <span>Workspace</span>
-        </h1>
-        <p className="text-muted-foreground mt-1">Manage your workspace settings</p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold flex items-center space-x-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            <span>Workspace</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your workspace settings</p>
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <Card>
+          <CardContent className="py-12">
+            <div className="flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          </CardContent>
+        </Card>
       ) : workspace ? (
         <>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-7 w-7 text-primary" />
+                  </div>
+                  <div>
                     {isEditing ? (
-                      <Input
-                        {...register('name')}
-                        className="w-auto bg-transparent border-none focus:ring-0"
-                        disabled={updateMutation.isPending}
-                      />
+                      <FormField
+                        label="Workspace Name"
+                        error={errors.name?.message}
+                        required
+                      >
+                        <Input
+                          {...register('name')}
+                          disabled={updateMutation.isPending}
+                          className="w-full sm:w-96"
+                        />
+                      </FormField>
                     ) : (
-                      <span>{workspace.name}</span>
+                      <>
+                        <h2 className="text-xl font-semibold">{workspace.name}</h2>
+                        <Badge variant="secondary" className="mt-1">
+                          {activeOrganization.name}
+                        </Badge>
+                      </>
                     )}
-                    <Badge variant="secondary" className="ml-2">
-                      {activeOrganization.name}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    {workspace.description || 'No description provided'}
-                  </CardDescription>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 sm:ml-auto">
                   {isEditing ? (
                     <>
-                      <Button variant="outline" size="icon" onClick={handleCancel}>
+                      <Button variant="glass" size="icon" onClick={handleCancel} aria-label="Cancel editing">
                         <X className="h-4 w-4" />
                       </Button>
                       <Button
                         type="submit"
                         form="workspace-form"
+                        variant="glass"
                         disabled={updateMutation.isPending}
                       >
                         {updateMutation.isPending ? (
@@ -151,7 +173,7 @@ export function WorkspacePage() {
                       </Button>
                     </>
                   ) : (
-                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    <Button variant="glass" onClick={() => setIsEditing(true)}>
                       <Edit2 className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
@@ -160,62 +182,56 @@ export function WorkspacePage() {
               </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} id="workspace-form" className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} id="workspace-form" className="space-y-5">
                 {error && (
                   <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
                 {success && (
-                  <Alert variant="default" className="border-green-500/50 bg-green-500/10">
+                  <Alert variant="success">
                     <AlertDescription>{success}</AlertDescription>
                   </Alert>
                 )}
 
                 {!isEditing ? (
                   <>
-                    <div className="space-y-2">
-                      <Label>Description</Label>
+                    <FormField label="Description">
                       <p className="text-muted-foreground">
                         {workspace.description || 'No description provided'}
                       </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Organization</Label>
+                    </FormField>
+                    <FormField label="Organization">
                       <p>{activeOrganization.name}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Created</Label>
+                    </FormField>
+                    <FormField label="Created">
                       <p>{format(new Date(workspace.createdAt), 'PPP')}</p>
-                    </div>
+                    </FormField>
                   </>
                 ) : (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Workspace Name</Label>
+                    <FormField
+                      label="Workspace Name"
+                      error={errors.name?.message}
+                      required
+                    >
                       <Input
                         id="name"
                         {...register('name')}
                         disabled={updateMutation.isPending}
-                        aria-invalid={!!errors.name}
                       />
-                      {errors.name && (
-                        <p className="text-sm text-destructive">{errors.name.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
+                    </FormField>
+                    <FormField
+                      label="Description"
+                      error={errors.description?.message}
+                    >
                       <Textarea
                         id="description"
                         {...register('description')}
                         disabled={updateMutation.isPending}
                         rows={3}
-                        aria-invalid={!!errors.description}
                       />
-                      {errors.description && (
-                        <p className="text-sm text-destructive">{errors.description.message}</p>
-                      )}
-                    </div>
+                    </FormField>
                   </>
                 )}
               </form>
@@ -231,30 +247,33 @@ export function WorkspacePage() {
               <CardDescription>Read-only information about this workspace</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">Workspace ID</Label>
-                  <p className="font-mono text-sm">{workspace.id}</p>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Workspace ID</dt>
+                  <dd className="mt-1 font-mono text-sm">{workspace.id}</dd>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">Organization</Label>
-                  <p>{activeOrganization.name} ({activeOrganization.slug})</p>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Organization</dt>
+                  <dd className="mt-1">{activeOrganization.name} ({activeOrganization.slug})</dd>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">Created</Label>
-                  <p>{format(new Date(workspace.createdAt), 'PPP')}</p>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Created</dt>
+                  <dd className="mt-1">{format(new Date(workspace.createdAt), 'PPP')}</dd>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-sm text-muted-foreground">Last Updated</Label>
-                  <p>{format(new Date(workspace.updatedAt), 'PPP')}</p>
+                <div>
+                  <dt className="text-sm font-medium text-muted-foreground">Last Updated</dt>
+                  <dd className="mt-1">{format(new Date(workspace.updatedAt), 'PPP')}</dd>
                 </div>
-              </div>
+              </dl>
             </CardContent>
           </Card>
         </>
       ) : (
         <Card>
-          <CardHeader>
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+              <Building2 className="h-7 w-7 text-muted-foreground" />
+            </div>
             <CardTitle>No Workspace Found</CardTitle>
             <CardDescription>This organization doesn&apos;t have a workspace yet.</CardDescription>
           </CardHeader>

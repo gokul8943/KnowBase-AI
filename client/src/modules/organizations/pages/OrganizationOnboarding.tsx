@@ -4,13 +4,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { useOrganization } from '../../../context/OrganizationContext';
-import { Button } from '../../../components/ui/button';
-import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
-import { Label } from '../../../components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../components/ui/card';
-import { Alert, AlertDescription } from '../../../components/ui/alert';
-import { Loader2, Building2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  Alert,
+  AlertDescription,
+  FormField,
+} from '../../../components/ui';
 
 const createOrganizationSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
@@ -60,57 +68,57 @@ export function OrganizationOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Building2 className="h-6 w-6 text-primary" />
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <Sparkles className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle>Create Your Organization</CardTitle>
-          <CardDescription>
-            Set up your organization to start building your knowledge base
-          </CardDescription>
+          <div>
+            <CardTitle className="text-2xl font-semibold">Create Your Organization</CardTitle>
+            <CardDescription>
+              Set up your organization to start building your knowledge base
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form id="create-org-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <CardContent className="space-y-5">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Organization Name</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <FormField
+              label="Organization Name"
+              error={errors.name?.message}
+              required
+            >
               <Input
                 id="name"
                 placeholder="Acme Technologies"
                 {...register('name')}
                 disabled={isSubmitting}
-                aria-invalid={!!errors.name}
+                autoComplete="organization"
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+            <FormField
+              label="Description (optional)"
+              error={errors.description?.message}
+            >
               <Textarea
                 id="description"
                 placeholder="Internal knowledge management for our team"
                 {...register('description')}
                 disabled={isSubmitting}
                 rows={3}
-                aria-invalid={!!errors.description}
               />
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
-            </div>
+            </FormField>
           </form>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button type="submit" form="create-org-form" disabled={isSubmitting} className="w-full sm:w-auto">
+          <Button type="submit" form="create-org-form" variant="glass" disabled={isSubmitting} className="w-full sm:w-auto">
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

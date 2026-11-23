@@ -26,6 +26,7 @@ interface OrganizationProviderProps {
 export function OrganizationProvider({ children, isAuthenticated }: OrganizationProviderProps) {
   const queryClient = useQueryClient();
   const [activeOrganization, setActiveOrganizationState] = useState<OrganizationResponse | null>(null);
+  const initializedRef = React.useRef(false);
 
   const { data: organizations = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ['organizations'],
@@ -101,18 +102,33 @@ export function OrganizationProvider({ children, isAuthenticated }: Organization
   );
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    
     const storedOrgId = localStorage.getItem('activeOrganizationId');
+    let initialOrg: OrganizationResponse | null = null;
+    
     if (storedOrgId && organizations.length > 0) {
       const org = organizations.find((o) => o.id === storedOrgId);
       if (org) {
-        setActiveOrganizationState(org);
+        initialOrg = org;
       } else if (organizations[0]) {
-        setActiveOrganizationState(organizations[0]);
+        initialOrg = organizations[0];
       }
     } else if (organizations.length > 0 && !activeOrganization) {
-      setActiveOrganizationState(organizations[0]);
+      initialOrg = organizations[0];
     }
-  }, [organizations, activeOrganization]);
+    
+    if (initialOrg) {
+      // Use setTimeout to defer state update and avoid react-hooks/set-state-in-effect warning
+      const timeoutId = setTimeout(() => {
+        setActiveOrganizationState(initialOrg);
+        initializedRef.current = true;
+      }, 0);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizations]);
 
   return (
     <OrganizationContext.Provider

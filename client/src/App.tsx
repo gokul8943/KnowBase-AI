@@ -8,74 +8,82 @@ import { OrganizationOnboarding } from './modules/organizations/pages/Organizati
 import { OrganizationSettings } from './modules/organizations/pages/OrganizationSettings';
 import { OrganizationMembers } from './modules/organizations/pages/OrganizationMembers';
 import { WorkspacePage } from './modules/organizations/pages/WorkspacePage';
+import { AuthLayout } from './components/layout/AuthLayout';
+import { DashboardLayout } from './components/layout/DashboardLayout';
 
 function App() {
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <Signup />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute requireOrganization={false}>
-            <OrganizationOnboarding />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <OrganizationSettings />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/organization/members"
-        element={
-          <ProtectedRoute>
-            <OrganizationMembers />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/organization/workspace"
-        element={
-          <ProtectedRoute>
-            <WorkspacePage />
-          </ProtectedRoute>
-        }
-      />
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+      </Route>
+
+      <Route element={<DashboardLayout />}>
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute requireOrganization={false}>
+              <OrganizationOnboarding />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <OrganizationSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/members"
+          element={
+            <ProtectedRoute>
+              <OrganizationMembers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/workspace"
+          element={
+            <ProtectedRoute>
+              <WorkspacePage />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
