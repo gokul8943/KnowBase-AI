@@ -56,6 +56,9 @@ export {
 export { EmptyState } from './empty-state';
 export { LoadingSkeleton, TableSkeleton, ListSkeleton } from './loading-skeleton';
 export { ConfirmationDialog } from './confirmation-dialog';
+export { Pagination } from './pagination';
+export { Progress } from './progress';
+export { ScrollArea } from './scroll-area';
 export {
   FormField,
   InputField,

@@ -20,6 +20,7 @@ model User {
   refreshTokens         RefreshToken[]
   organizationMembers   OrganizationMember[]
   sentInvitations       Invitation[] @relation("SentInvitations")
+  uploadedDocuments     Document[]
 
   @@index([email])
   @@map("users")
@@ -51,6 +52,7 @@ model Organization {
   members     OrganizationMember[]
   workspaces  Workspace[]
   invitations Invitation[]
+  documents   Document[]
 
   @@index([slug])
   @@map("organizations")
@@ -81,6 +83,7 @@ model Workspace {
   description     String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  documents       Document[]
 
   @@index([organizationId])
   @@map("workspaces")
@@ -104,8 +107,49 @@ model Invitation {
   @@map("invitations")
 }
 
+model Document {
+  id                    String          @id @default(cuid())
+  organizationId        String
+  organization          Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId           String
+  workspace             Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploadedById          String
+  uploadedBy            User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  name                  String
+  originalName          String
+  storageProvider       String          @default("cloudinary")
+  cloudinaryPublicId    String
+  cloudinaryResourceType String
+  mimeType              String
+  extension             String
+  size                  BigInt
+  checksum              String
+  status                DocumentStatus  @default(PENDING)
+  errorMessage          String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  deletedAt             DateTime?
+
+  @@unique([storageProvider, cloudinaryPublicId])
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([uploadedById])
+  @@index([status])
+  @@index([createdAt])
+  @@map("documents")
+}
+
 enum MemberRole {
   OWNER
   ADMIN
   MEMBER
+}
+
+enum DocumentStatus {
+  PENDING
+  UPLOADING
+  UPLOADED
+  FAILED
+  DELETING
+  DELETED
 }

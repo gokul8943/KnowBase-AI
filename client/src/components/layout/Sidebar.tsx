@@ -12,11 +12,13 @@ import {
   Menu,
   X,
   Sparkles,
+  FileText,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Documents', href: '/organization/documents', icon: FileText },
   { name: 'Workspace', href: '/organization/workspace', icon: Building2 },
   { name: 'Members', href: '/organization/members', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },

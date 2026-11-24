@@ -10,8 +10,10 @@ import { config } from './config';
 import { apiRoutes } from './routes';
 import { errorHandler, notFoundHandler } from './shared/errors/errorHandler';
 import { validateConfig } from './config';
+import { initCloudinary } from './config/cloudinary';
 
 validateConfig();
+initCloudinary();
 
 const app = express();
 

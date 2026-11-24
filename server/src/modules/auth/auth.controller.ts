@@ -1,22 +1,34 @@
 import crypto from 'crypto';
-import type { Request, Response } from 'express';
+import type { Request, Response, CookieOptions } from 'express';
 import { asyncHandler } from '../../shared/utils/asyncHandler';
 import { authService } from './auth.service';
 import { config } from '../../config';
 import type { ApiResponse } from '../../shared/types';
 
+const baseCookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: config.env === 'production',
+  sameSite: 'lax',
+  path: '/',
+};
+
 const setAuthCookies = (res: Response, accessToken: string, refreshToken: string): void => {
-  res.cookie('accessToken', accessToken, {
-    ...config.cookie.options,
+  const accessCookieOptions: CookieOptions = {
+    ...baseCookieOptions,
     maxAge: 15 * 60 * 1000,
-  });
-  res.cookie(config.cookie.name, refreshToken, config.cookie.options);
+  };
+  const refreshCookieOptions: CookieOptions = {
+    ...baseCookieOptions,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+  res.cookie('accessToken', accessToken, accessCookieOptions);
+  res.cookie(config.cookie.name, refreshToken, refreshCookieOptions);
 };
 
 const clearAuthCookies = (res: Response): void => {
-  const cookieOptions = {
-    ...config.cookie.options,
-    maxAge: undefined,
+  const cookieOptions: CookieOptions = {
+    ...baseCookieOptions,
+    maxAge: 0,
   };
   res.clearCookie('accessToken', cookieOptions);
   res.clearCookie(config.cookie.name, cookieOptions);

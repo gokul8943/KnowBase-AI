@@ -8,6 +8,7 @@ import { OrganizationOnboarding } from './modules/organizations/pages/Organizati
 import { OrganizationSettings } from './modules/organizations/pages/OrganizationSettings';
 import { OrganizationMembers } from './modules/organizations/pages/OrganizationMembers';
 import { WorkspacePage } from './modules/organizations/pages/WorkspacePage';
+import { DocumentLibraryPage } from './modules/documents/pages/DocumentLibraryPage';
 import { AuthLayout } from './components/layout/AuthLayout';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
@@ -79,6 +80,14 @@ function App() {
           element={
             <ProtectedRoute>
               <WorkspacePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/documents"
+          element={
+            <ProtectedRoute>
+              <DocumentLibraryPage />
             </ProtectedRoute>
           }
         />

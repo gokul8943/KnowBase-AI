@@ -37,14 +37,26 @@ export const config = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     },
+  },
+
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+    folder: process.env.CLOUDINARY_FOLDER || 'knowbase-ai/documents',
+  },
+
+  upload: {
+    maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '20', 10),
+    maxFilesPerUpload: parseInt(process.env.MAX_FILES_PER_UPLOAD || '5', 10),
   },
 };
 
 export const validateConfig = (): void => {
-  const required = ['DATABASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+  const required = ['DATABASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
 
   const missing = required.filter((key) => !process.env[key]);
 
@@ -58,5 +70,13 @@ export const validateConfig = (): void => {
 
   if (config.jwt.refreshSecret.length < 32) {
     throw new Error('JWT_REFRESH_SECRET must be at least 32 characters');
+  }
+
+  if (config.upload.maxFileSizeMb < 1 || config.upload.maxFileSizeMb > 100) {
+    throw new Error('MAX_FILE_SIZE_MB must be between 1 and 100');
+  }
+
+  if (config.upload.maxFilesPerUpload < 1 || config.upload.maxFilesPerUpload > 20) {
+    throw new Error('MAX_FILES_PER_UPLOAD must be between 1 and 20');
   }
 };
