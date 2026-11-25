@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { organizationRepository } from './organization.repository';
+import { workspaceRepository } from '../workspaces/workspace.repository';
 import { AuthorizationError, NotFoundError } from '../../shared/errors/AppError';
 import type { MemberRole } from '@prisma/client';
 
@@ -82,3 +83,45 @@ export const requireOrganizationRole = (...allowedRoles: MemberRole[]) => {
 export const requireOwner = requireOrganizationRole('OWNER');
 export const requireAdminOrOwner = requireOrganizationRole('OWNER', 'ADMIN');
 export const requireMemberOrAbove = requireOrganizationRole('OWNER', 'ADMIN', 'MEMBER');
+
+export const requireWorkspaceMember = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const workspaceId = req.params.workspaceId;
+    if (!workspaceId) {
+      throw new AuthorizationError('Workspace ID is required');
+    }
+
+    const userId = req.user!.id;
+
+    const workspace = await workspaceRepository.findByIdWithOrganization(workspaceId);
+    if (!workspace) {
+      throw new NotFoundError('Workspace');
+    }
+
+    const member = await organizationRepository.isMember(workspace.organization.id, userId);
+    if (!member) {
+      throw new AuthorizationError('You are not a member of this organization');
+    }
+
+    req.organization = {
+      id: workspace.organization.id,
+      name: workspace.organization.name,
+      slug: workspace.organization.slug,
+    };
+
+    req.organizationMember = {
+      id: member.id,
+      role: member.role,
+      userId: member.userId,
+      organizationId: member.organizationId,
+    };
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+};

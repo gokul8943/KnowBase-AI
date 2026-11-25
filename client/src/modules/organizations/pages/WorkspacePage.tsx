@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '../../../context/OrganizationContext';
 import { workspaceApi } from '../../../modules/workspaces/api/workspaceApi';
-import { Loader2, Building2, Settings, Edit2, Save, X, Sparkles } from 'lucide-react';
+import { Loader2, Building2, Settings, Edit2, Save, X, Sparkles, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Button,
@@ -20,6 +20,12 @@ import {
   Alert,
   AlertDescription,
   FormField,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '../../../components/ui';
 
 const updateWorkspaceSchema = z.object({
@@ -27,12 +33,19 @@ const updateWorkspaceSchema = z.object({
   description: z.string().max(500, 'Description too long').optional(),
 });
 
+const createWorkspaceSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
+  description: z.string().max(500, 'Description too long').optional(),
+});
+
 type UpdateWorkspaceForm = z.infer<typeof updateWorkspaceSchema>;
+type CreateWorkspaceForm = z.infer<typeof createWorkspaceSchema>;
 
 export function WorkspacePage() {
   const { activeOrganization } = useOrganization();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -55,13 +68,26 @@ export function WorkspacePage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: CreateWorkspaceForm) =>
+      workspaceApi.create(activeOrganization!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspaces', activeOrganization?.id] });
+      setDialogOpen(false);
+      setSuccess('Workspace created successfully');
+    },
+    onError: (err: Error) => {
+      setError(err.message);
+    },
+  });
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<UpdateWorkspaceForm>({
-    resolver: zodResolver(updateWorkspaceSchema),
+  } = useForm<UpdateWorkspaceForm | CreateWorkspaceForm>({
+    resolver: zodResolver(dialogOpen ? createWorkspaceSchema : updateWorkspaceSchema),
     defaultValues: {
       name: workspaces[0]?.name || '',
       description: workspaces[0]?.description || '',
@@ -70,21 +96,31 @@ export function WorkspacePage() {
 
   const workspace = workspaces[0];
 
-  const onSubmit = (data: UpdateWorkspaceForm) => {
-    if (!workspace) return;
+  const onSubmit = (data: UpdateWorkspaceForm | CreateWorkspaceForm) => {
     setError(null);
     setSuccess(null);
-    updateMutation.mutate({ id: workspace.id, data });
+    if (dialogOpen) {
+      createMutation.mutate(data as CreateWorkspaceForm);
+    } else if (workspace) {
+      updateMutation.mutate({ id: workspace.id, data: data as UpdateWorkspaceForm });
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setDialogOpen(false);
     reset({
       name: workspace?.name || '',
       description: workspace?.description || '',
     });
     setError(null);
     setSuccess(null);
+  };
+
+  const handleCreateClick = () => {
+    setDialogOpen(true);
+    setIsEditing(false);
+    reset({ name: '', description: '' });
   };
 
   if (!activeOrganization) {
@@ -173,15 +209,31 @@ export function WorkspacePage() {
                       </Button>
                     </>
                   ) : (
-                    <Button variant="glass" onClick={() => setIsEditing(true)}>
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Edit
-                    </Button>
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCreateClick}
+                        className="cursor-pointer"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Workspace
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        className="cursor-pointer"
+                      >
+                        <Edit2 className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+<CardContent>
               <form onSubmit={handleSubmit(onSubmit)} id="workspace-form" className="space-y-5">
                 {error && (
                   <Alert variant="destructive">
@@ -277,8 +329,87 @@ export function WorkspacePage() {
             <CardTitle>No Workspace Found</CardTitle>
             <CardDescription>This organization doesn&apos;t have a workspace yet.</CardDescription>
           </CardHeader>
+          <CardContent className="text-center">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleCreateClick}
+              className="cursor-pointer"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Workspace
+            </Button>
+          </CardContent>
         </Card>
       )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create Workspace</DialogTitle>
+            <DialogDescription>
+              Create a new workspace for your organization.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <FormField
+              label="Workspace Name"
+              error={errors.name?.message}
+              required
+            >
+              <Input
+                id="name"
+                {...register('name')}
+                disabled={createMutation.isPending}
+                autoFocus
+              />
+            </FormField>
+            <FormField
+              label="Description"
+              error={errors.description?.message}
+            >
+              <Textarea
+                id="description"
+                {...register('description')}
+                disabled={createMutation.isPending}
+                rows={3}
+              />
+            </FormField>
+            <DialogFooter className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                disabled={createMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Create
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
